@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <style type="text/css">
+    .disabled { display: none; }
+  </style>
+  <script>
+    // IMPORTANT: Replace the value for DEVELOPER_KEY with the API key obtained
+    // from the Google Developers Console.
+    var DEVELOPER_KEY = 'SECRET_DEV_KEY';
+    var DIALOG_DIMENSIONS = {width: 600, height: 425};
+    var pickerApiLoaded = false;
+
+    /**
+     * Loads the Google Picker API.
+     */
+    function onApiLoad() {
+      gapi.load('picker', {'callback': function() {
+        pickerApiLoaded = true;
+      }});
+      getOAuthToken();
+    }
+
+    /**
+     * Gets the user's OAuth 2.0 access token from the server-side script so that
+     * it can be passed to Picker. This technique keeps Picker from needing to
+     * show its own authorization dialog, but is only possible if the OAuth scope
+     * that Picker needs is available in Apps Script. Otherwise, your Picker code
+     * will need to declare its own OAuth scopes.
+     */
+    function getOAuthToken() {
+      google.script.run.withSuccessHandler(createPicker)
+          .withFailureHandler(showError).getOAuthToken();
+    }
+
+    /**
+     * Creates a Picker that can access the user's spreadsheets. This function
+     * uses advanced options to hide the Picker's left navigation panel and
+     * default title bar.
+     *
+     * @param {string} token An OAuth 2.0 access token that lets Picker access the
+     *     file type specified in the addView call.
+     */
+    function createPicker(token) {
+      if (pickerApiLoaded && token) {
+        var picker = new google.picker.PickerBuilder()
+            .addView(new google.picker.DocsView(google.picker.ViewId.DOCUMENTS)
+                .setIncludeFolders(true))
+            // Hide the navigation panel so that Picker fills more of the dialog.
+            .enableFeature(google.picker.Feature.NAV_HIDDEN)
+            .enableFeature(google.picker.Feature.MINE_ONLY)
+            // Hide the title bar since an Apps Script dialog already has a title.
+            .hideTitleBar()
+            .setOAuthToken(token)
+            .setDeveloperKey(DEVELOPER_KEY)
+            .setCallback(pickerCallback)
+            .setOrigin(google.script.host.origin)
+            // Instruct Picker to fill the dialog, minus 2 pixels for the border.
+            .setSize(DIALOG_DIMENSIONS.width - 2,
+                DIALOG_DIMENSIONS.height - 2)
+            .build();
+        picker.setVisible(true);
+      } else {
+        showError('Unable to load the file picker.');
+      }
+    }
+
+    /**
+     * A callback function that extracts the chosen document's metadata from the
+     * response object. For details on the response object, see
+     * https://developers.google.com/picker/docs/result
+     *
+     * @param {object} data The response object.
+     */
+    function pickerCallback(data) {
+      var action = data[google.picker.Response.ACTION];
+      if (action == google.picker.Action.PICKED) {
+        var doc = data[google.picker.Response.DOCUMENTS][0];
+
+        google.script.run
+          .withFailureHandler(showError)
+          .withSuccessHandler(showNewDoc)
+          .cloneDocument(doc[google.picker.Document.ID]);
+      } else if (action == google.picker.Action.CANCEL) {
+        google.script.host.close();
+      }
+    }
+
+    /**
+     * Fill in the results section with information on the new document.
+     *
+     * @param  {object} data The response object from cloneDocument()
+     */
+    function showNewDoc(data) {
+      $("#success a").attr('href',data.url);
+      $("#success a").text(data.title);
+      $("#success").removeClass('disabled');
+      $("#waiting").addClass('disabled');
+    }
+
+    /**
+     * Displays an error message within the #result element.
+     *
+     * @param {string} message The error message to display.
+     */
+    function showError(message) {
+      $("#result .error").text('Error: '+message);
+      $("#waiting").addClass('disabled');
+    }
+  </script>
+</head>
+<body>
+  <div>
+    <h1>Template Selection</h1>
+    <p>Choose an appropriate template from your Google Documents. Its expected that this template have variables like
+    <code>&lt;&lt;CurrentDate&gt;&gt;</code> and a table of line items to fill from the current spreadsheet data.</p>
+    <div id="result">
+      <i id="waiting" class="fa fa-spinner fa-pulse fa-5x"></i>
+      <span class="error"></span>
+    </div>
+    <div id="success" class="disabled">
+      <h2>New Document Created:</h2>
+      <a href="#" target="_blank"></a>
+    </div>
+  </div>
+  <script src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
+  <script src="https://code.jquery.com/jquery-2.2.1.min.js" integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00=" crossorigin="anonymous"></script>
+</body>
+</html>
