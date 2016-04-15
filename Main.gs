@@ -100,11 +100,17 @@ function findInvoiceTable(body) {
  * @param {int} fileid The Google Drive document ID to modify
  */
 function parseTemplate(fileid) {
+  var head = DocumentApp.openById(fileid).getHeader();
   var body = DocumentApp.openById(fileid).getBody();
+  var invoiceNumber = Utilities.formatDate(new Date(), TimeZone, 'YYYYMMdd');
 
-  // Replace global text
+  // Replace global text in header and body
   body.replaceText('<<CurrentDate>>', CurrentDate);
   body.replaceText('<<CompanyName>>', SpreadsheetName);
+  body.replaceText('<<InvoiceNumber>>', invoiceNumber);
+  head.replaceText('<<CurrentDate>>', CurrentDate);
+  head.replaceText('<<CompanyName>>', SpreadsheetName);
+  head.replaceText('<<InvoiceNumber>>', invoiceNumber);
 
   // fills out as many rows as needed and then returns the sum total
   var totaldue = parseTableData(findInvoiceTable(body));
