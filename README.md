@@ -26,6 +26,7 @@ The document template will be cloned, so you can use it as many times as needed 
 * `<<CompanyName>>`: this is the spreadsheet's name unless defined otherwise in the code
 * `<<CurrentDate>>`: today's date
 * `<<TotalDue>>`: total dollar sum of all invoice rows added
+* `<<InvoiceNumber>>`: today's date like '20160414'
 
 Invoice item rows are in a table that must have a header and footer row. The header's first column must be called _date_ because that's how its found by the code. See `Main.gs::findInvoiceTable()` function if you want to change it.
 
