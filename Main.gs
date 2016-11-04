@@ -26,6 +26,7 @@ var CurrencyFormat = "\$%.2f";
  * This is used to fill in "CompanyName" on the invoice, assumed name of spreadsheet
  */
 var SpreadsheetName = SpreadsheetApp.getActiveSpreadsheet().getName();
+var SpreadsheetId = SpreadsheetApp.getActiveSpreadsheet().getId();
 
 /**
  * Today :)
@@ -51,8 +52,10 @@ function cloneDocument(id) {
   findInvoiceTable(DocumentApp.openById(id).getBody());
 
   // make a copy of the template file named with today's date
+  // save it in the same location as the spreadsheet
   var name = 'Invoice '+SpreadsheetName+' '+CurrentDate;
-  var newfile = DriveApp.getFileById(id).makeCopy(name);
+  var folder = DriveApp.getFileById(SpreadsheetId).getParents().next();
+  var newfile = DriveApp.getFileById(id).makeCopy(name, folder);
 
   // copy all data into new document clone
   parseTemplate(newfile.getId());
