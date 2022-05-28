@@ -1,4 +1,6 @@
-# Simple Invoicing with Google Scripts
+# ⚠️ This repository is no longer maintained ⚠️
+
+## Simple Invoicing with Google Scripts
 
 ## Background
 I was looking for something very simple that would copy spreadsheet rows to a document, all within Google Apps/Google Drive. There are plenty of mail merge and invoicing projects listed in the Google add-ons to accomplish some of this, but a lot of them require the use of third party sites or have more customization or features that I don't need. They are worth looking into though, as this requires some extra steps to use, like creating a developer API key. 
